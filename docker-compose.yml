@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - ./.env
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      BOT_TOKEN: ${BOT_TOKEN}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      WEBHOOK_PATH: ${WEBHOOK_PATH:-/webhook/telegram}
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL:-file:./dev.db}
+      REDIS_URL: ${REDIS_URL:-}
+      USE_WEBHOOK: ${USE_WEBHOOK:-false}
+      USE_REDIS_QUEUE: ${USE_REDIS_QUEUE:-false}
+      ADMIN_SECRET: ${ADMIN_SECRET}
+      ADMIN_TELEGRAM_ID: ${ADMIN_TELEGRAM_ID}
+    volumes:
+      - ./backend/prisma:/app/prisma
+      - ./backend/sessions_db.json:/app/sessions_db.json
+    depends_on:
+      - redis
